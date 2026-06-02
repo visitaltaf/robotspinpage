@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Itkan Robot</title>
+  <style>
+    :root {
+      --scroll-progress: 0;
+      --text-progress: 0;
+      --bg-top: #06111f;
+      --bg-bottom: #102f47;
+      --glow: #47d7ff;
+      --robot: #f5f8ff;
+      --robot-shadow: #a3b6cf;
+      --accent: #35c6ff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      min-height: 260vh;
+      margin: 0;
+      color: #fff;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 50% 22%, rgba(71, 215, 255, 0.26), transparent 26rem),
+        linear-gradient(180deg, var(--bg-top), var(--bg-bottom) 58%, #08111d);
+      overflow-x: hidden;
+    }
+
+    .scene {
+      position: sticky;
+      top: 0;
+      display: grid;
+      place-items: center;
+      min-height: 100vh;
+      padding: 2rem;
+      isolation: isolate;
+    }
+
+    .stars,
+    .stars::before,
+    .stars::after {
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      content: "";
+      background-image:
+        radial-gradient(circle, rgba(255, 255, 255, 0.85) 0 1px, transparent 1.5px),
+        radial-gradient(circle, rgba(71, 215, 255, 0.65) 0 1px, transparent 1.4px);
+      background-position:
+        0 0,
+        2.5rem 3.5rem;
+      background-size:
+        7rem 7rem,
+        10rem 10rem;
+      opacity: 0.34;
+      transform: translateY(calc(var(--scroll-progress) * -7rem));
+    }
+
+    .stars::before {
+      opacity: 0.22;
+      transform: rotate(12deg) scale(1.1);
+    }
+
+    .stars::after {
+      opacity: 0.18;
+      transform: rotate(-8deg) scale(1.25);
+    }
+
+    .orbit {
+      position: absolute;
+      width: clamp(18rem, 48vw, 38rem);
+      aspect-ratio: 1;
+      border: 1px solid rgba(71, 215, 255, 0.18);
+      border-radius: 999px;
+      opacity: calc(0.25 + (var(--scroll-progress) * 0.45));
+      transform:
+        rotate(calc(var(--scroll-progress) * 34deg))
+        scale(calc(0.7 + (var(--scroll-progress) * 0.3)));
+    }
+
+    .robot-wrap {
+      position: relative;
+      width: min(52vw, 26rem);
+      min-width: 17rem;
+      filter: drop-shadow(0 2.8rem 3rem rgba(0, 0, 0, 0.34));
+      transform:
+        translateY(calc((1 - var(--scroll-progress)) * 5vh))
+        scale(calc(3.1 - (var(--scroll-progress) * 2.05)));
+      transform-origin: 50% 54%;
+      transition: transform 80ms linear;
+      will-change: transform;
+    }
+
+    .robot {
+      position: relative;
+      display: grid;
+      justify-items: center;
+      gap: 0.7rem;
+    }
+
+    .antenna {
+      position: relative;
+      width: 0.35rem;
+      height: 3.2rem;
+      border-radius: 999px;
+      background: linear-gradient(180deg, var(--glow), #e9fbff);
+      box-shadow: 0 0 1.4rem rgba(71, 215, 255, 0.7);
+    }
+
+    .antenna::before {
+      position: absolute;
+      top: -0.75rem;
+      left: 50%;
+      width: 1.25rem;
+      aspect-ratio: 1;
+      content: "";
+      border-radius: 50%;
+      background: var(--glow);
+      box-shadow: 0 0 2rem rgba(71, 215, 255, 0.9);
+      transform: translateX(-50%);
+    }
+
+    .head {
+      position: relative;
+      width: 15.5rem;
+      height: 11.75rem;
+      border: 0.35rem solid rgba(255, 255, 255, 0.9);
+      border-radius: 4rem;
+      background:
+        linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(202, 217, 236, 0.96)),
+        var(--robot);
+      box-shadow:
+        inset -1rem -1.3rem 0 rgba(88, 112, 145, 0.18),
+        inset 0.7rem 0.8rem 0 rgba(255, 255, 255, 0.78);
+    }
+
+    .face {
+      position: absolute;
+      inset: 2.45rem 2.1rem 2.35rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2rem;
+      border-radius: 2.4rem;
+      background: linear-gradient(180deg, #091b2d, #123354);
+      box-shadow: inset 0 0 1.5rem rgba(71, 215, 255, 0.22);
+    }
+
+    .eye {
+      width: 2rem;
+      height: 2.45rem;
+      border-radius: 999px;
+      background: var(--glow);
+      box-shadow: 0 0 1.5rem rgba(71, 215, 255, 0.88);
+      animation: blink 5.6s infinite;
+    }
+
+    .body-row {
+      position: relative;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      width: 21rem;
+    }
+
+    .torso {
+      position: relative;
+      width: 12.5rem;
+      height: 12rem;
+      border-radius: 3.2rem 3.2rem 4.4rem 4.4rem;
+      background: linear-gradient(145deg, #f7fbff, #bccde4);
+      box-shadow:
+        inset -1rem -1.2rem 0 rgba(73, 95, 128, 0.2),
+        0 1rem 2rem rgba(0, 0, 0, 0.18);
+    }
+
+    .torso::before {
+      position: absolute;
+      top: 2.1rem;
+      left: 50%;
+      width: 4.7rem;
+      height: 1.25rem;
+      content: "";
+      border-radius: 999px;
+      background: linear-gradient(90deg, #2cc4ff, #8ff2ff);
+      box-shadow: 0 0 1rem rgba(71, 215, 255, 0.64);
+      transform: translateX(-50%);
+    }
+
+    .torso::after {
+      position: absolute;
+      right: 2.8rem;
+      bottom: 2.35rem;
+      width: 1.25rem;
+      aspect-ratio: 1;
+      content: "";
+      border-radius: 50%;
+      background: #35c6ff;
+      box-shadow:
+        -2rem 0 0 #7de9ff,
+        0 0 1rem rgba(71, 215, 255, 0.55);
+    }
+
+    .arm {
+      width: 3rem;
+      height: 9.2rem;
+      margin-top: 1.3rem;
+      border-radius: 999px;
+      background: linear-gradient(180deg, #eff6ff, #a7bad3);
+      transform-origin: 50% 1.4rem;
+    }
+
+    .arm.left {
+      transform: rotate(17deg);
+    }
+
+    .arm.right {
+      transform: rotate(-17deg);
+    }
+
+    .leg-row {
+      display: flex;
+      gap: 2.3rem;
+      margin-top: -0.9rem;
+    }
+
+    .leg {
+      width: 3.2rem;
+      height: 5.8rem;
+      border-radius: 0 0 999px 999px;
+      background: linear-gradient(180deg, #dce8f7, #92a9c5);
+    }
+
+    .shadow {
+      width: 16rem;
+      height: 2.6rem;
+      margin-top: -0.6rem;
+      border-radius: 50%;
+      background: radial-gradient(ellipse, rgba(0, 0, 0, 0.32), transparent 70%);
+      transform: scaleX(calc(1.35 - (var(--scroll-progress) * 0.45)));
+      opacity: calc(0.25 + (var(--scroll-progress) * 0.28));
+    }
+
+    .message {
+      position: absolute;
+      bottom: max(7vh, 3rem);
+      width: min(44rem, calc(100vw - 2rem));
+      padding: 0 1rem;
+      text-align: center;
+      opacity: var(--text-progress);
+      transform: translateY(calc((1 - var(--text-progress)) * 2.5rem));
+      transition: opacity 120ms linear, transform 120ms linear;
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      margin-bottom: 0.9rem;
+      padding: 0.35rem 0.8rem;
+      border: 1px solid rgba(141, 235, 255, 0.36);
+      border-radius: 999px;
+      color: #9febff;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      background: rgba(10, 30, 50, 0.46);
+      backdrop-filter: blur(10px);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2.6rem, 8vw, 6.6rem);
+      line-height: 0.9;
+      letter-spacing: -0.075em;
+      text-wrap: balance;
+    }
+
+    p {
+      max-width: 36rem;
+      margin: 1.15rem auto 0;
+      color: rgba(232, 247, 255, 0.82);
+      font-size: clamp(1rem, 2.3vw, 1.35rem);
+      line-height: 1.65;
+    }
+
+    .scroll-hint {
+      position: fixed;
+      right: 1.2rem;
+      bottom: 1.1rem;
+      display: grid;
+      place-items: center;
+      width: 3rem;
+      aspect-ratio: 1;
+      border: 1px solid rgba(141, 235, 255, 0.32);
+      border-radius: 999px;
+      color: rgba(232, 247, 255, 0.76);
+      font-size: 1.35rem;
+      background: rgba(8, 17, 29, 0.36);
+      opacity: calc(1 - var(--text-progress));
+      transform: translateY(calc(var(--scroll-progress) * 0.8rem));
+      transition: opacity 120ms linear;
+      backdrop-filter: blur(12px);
+    }
+
+    .content-spacer {
+      min-height: 120vh;
+    }
+
+    @keyframes blink {
+      0%,
+      45%,
+      48%,
+      100% {
+        transform: scaleY(1);
+      }
+
+      46%,
+      47% {
+        transform: scaleY(0.08);
+      }
+    }
+
+    @media (max-width: 680px) {
+      body {
+        min-height: 240vh;
+      }
+
+      .scene {
+        padding: 1rem;
+      }
+
+      .robot-wrap {
+        width: 18rem;
+        min-width: 0;
+        transform:
+          translateY(calc((1 - var(--scroll-progress)) * 4vh))
+          scale(calc(2.35 - (var(--scroll-progress) * 1.42)));
+      }
+
+      .message {
+        bottom: max(6vh, 2rem);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      .eye {
+        animation: none;
+      }
+
+      .robot-wrap,
+      .message,
+      .scroll-hint,
+      .stars {
+        transition: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="stars" aria-hidden="true"></div>
+
+  <main>
+    <section class="scene" aria-labelledby="page-title">
+      <div class="orbit" aria-hidden="true"></div>
+
+      <div class="robot-wrap" aria-hidden="true">
+        <div class="robot">
+          <div class="antenna"></div>
+          <div class="head">
+            <div class="face">
+              <span class="eye"></span>
+              <span class="eye"></span>
+            </div>
+          </div>
+
+          <div class="body-row">
+            <div class="arm left"></div>
+            <div class="torso"></div>
+            <div class="arm right"></div>
+          </div>
+
+          <div class="leg-row">
+            <div class="leg"></div>
+            <div class="leg"></div>
+          </div>
+          <div class="shadow"></div>
+        </div>
+      </div>
+
+      <div class="message">
+        <span class="eyebrow">Meet Itkan Robot</span>
+        <h1 id="page-title">Smart automation, closer than ever.</h1>
+        <p>
+          Scroll to zoom out from the robot and reveal the story. Itkan brings
+          friendly robotics, intelligent movement, and reliable automation into focus.
+        </p>
+      </div>
+
+      <div class="scroll-hint" aria-hidden="true">↓</div>
+    </section>
+
+    <div class="content-spacer" aria-hidden="true"></div>
+  </main>
+
+  <script>
+    const root = document.documentElement;
+
+    function clamp(value, min, max) {
+      return Math.min(Math.max(value, min), max);
+    }
+
+    function updateScrollAnimation() {
+      const maxScroll = Math.max(window.innerHeight * 1.15, 1);
+      const progress = clamp(window.scrollY / maxScroll, 0, 1);
+      const textProgress = clamp((progress - 0.68) / 0.32, 0, 1);
+
+      root.style.setProperty("--scroll-progress", progress.toFixed(4));
+      root.style.setProperty("--text-progress", textProgress.toFixed(4));
+    }
+
+    updateScrollAnimation();
+    window.addEventListener("scroll", updateScrollAnimation, { passive: true });
+    window.addEventListener("resize", updateScrollAnimation);
+  </script>
+</body>
+</html>
